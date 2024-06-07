@@ -1,2 +1,2 @@
-# DS2
-This is the official python implementation of DS2 model (Doubly Structured Data Synthesis for Time-series Energy Use Data)
+# Doubly Structured Data Synthesis for Time-series Energy Use Data
+This is the official repository for the paper [Doubly Structured Data Synthesis for Time-series Energy Use Data]
