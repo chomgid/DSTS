@@ -1,132 +1,56 @@
-id_number = 1
+# input type is np.array
+import numpy as np
+# calculate weights_post to update weight
+# n is lenght of original data
+# m is length of aug_data
 
-original_data = read.csv("C:/Users/wjswp/Desktop/발표자료/simulation/ds_energy/diffusion-ts/original_data.csv")
-aug_synthetic_data = read.csv('C:/Users/wjswp/Desktop/발표자료/simulation/ds_energy/diffusion-ts/syn_ds.csv')
-
-original_data=t(original_data)
-#original_data = original_data[original_data['Apartment'] == '공덕',3:6]
-#selected_rows <- original_data[original_data$April >= 0 & original_data$May >= 0 & original_data$June >= 0 & original_data$July >= 0, ]
-#original_data <- original_data[order(row.names(selected_rows)), ]
-rownames(original_data) <- NULL
-
-
-
-{ # synthetic data
-  l=length(t(aug_synthetic_data))/length(t(original_data))
-  m=nrow(aug_synthetic_data)
-  A=as.matrix(aug_synthetic_data)
-  n=nrow(original_data)
-  weights=rep(1,m)/l
-}
-
-{ # benchmark information
-  desired_means=colMeans(original_data)
-  #평균을 벤치마크로 하여 맞춰주고자 함
-}
-
-{ # function_diff
-  lambda=matrix(rep(0,length(desired_means)),ncol=1)
-  #초기 람다값=0
-  
-  diff = function(lambda, weights, A,desired_means){
+# diff_tot calculate total sum of column error
+# diff_each calculate each column error
+def diff_tot(lamb, weights, aug_data, desired_means, n):
     weights_prev = weights
-    weights_post = weights_prev * exp(-A %*% lambda)
-    weights_post = weights_post/sum(weights_post)*m
+    weights_post = weights_prev * np.exp(-aug_data @ lamb)
+    weights_post = weights_post / np.sum(weights_post) * n
+
+    return (np.sum(abs(aug_data.T @ weights_post /n - desired_means)))
+
+def diff_each(lambda_, weights, aug_data, desired_means, n):
+    weights_prev = weights
+    weights_post = weights_prev * np.exp(-aug_data * lambda_ )
+    weights_post = weights_post / np.sum(weights_post) * n
     
-    return(t(A) %*% weights_post / m - desired_means)
-  } # the function 'f'
-  
-  diff1=function(lambda,weights,A,desired_means,i){
-    lambda_i<-lambda[i]
-    A_i<-A[,i]
-    desired_means_i<-desired_means[i]
-    weights_prev=weights
-    weights_post=weights_prev*exp(-A_i*lambda_i)
-    weights_post=weights_post/sum(weights_post)*m
-    
-    return(as.vector(t(A_i)%*%weights_post)/m-desired_means_i)
-  }
-}
+    return ((aug_data.T @ weights_post)/n - desired_means)
+
+# index is order of lambda you want to update
+
+
+def deriv_lamb_diff(lambda_, weights, aug_data, desired_means, m):
+    return(-(aug_data*aug_data) @ np.exp(-lambda_*aug_data).T /m)
 
 
 
+# method is newton-Rhapson algorithm
+# iter is hyperparameter of how many times you want to update each lambda
+def calibration(ori_data,aug_data, iter=15, lr=0.0001):
+    n=len(ori_data)
+    m=len(aug_data)
+    init_weights=np.ones(len(aug_data)) / m * n
 
+    # benchmark information
+    desired_means=np.mean(ori_data, axis=0)
 
-{ # to find lambda, f(lambda)=0
-  # Newton-Raphson algo, albmda*=lambda0-f'(lambda0)f(lambda0)
-  eps_tot=matrix(c(1,1),ncol=1)
-  j=0
-  while(sum(abs(eps_tot))>(1e-4)){
-    eps_tot = solve(numDeriv::jacobian(function(lambda)diff(lambda, weights=weights, A=A,desired_means), lambda)) %*% diff(lambda, weights, A,desired_means)
-    for (i in 1:12){
-      eps=matrix(c(1,1),ncol=1)
-      while(sum(abs(eps))>1e-10){
-        eps=diff1(lambda,weights,A,desired_means,i)/numDeriv::jacobian(function(lambda){diff1(lambda,weights,A,desired_means,i)},lambda)[i]
-        print('eps')
-        print(eps)
-        lambda[i]=lambda[i]-1*eps
-        weights_calib=weights*exp(-A[,i]*lambda[i])
-        weights = weights_calib/sum(weights_calib)*m
-        #plot(weights,main=paste('iteration',i))
-        #print(sum(abs(abs(matrix(weights,nrow=1) %*% as.matrix(aug_synthetic_data)-colMeans(original_data)))))
-        #print(lambda)
-        print('error')
-        print(sum(abs(diff1(lambda,weights,A,desired_means,i))))
-        print('eps_tot')
-        print(sum(abs(eps_tot)))
-      }
-    print(i)
-    }  
-  }
-}
+    # To find lambda
+    # init_lambda
+    init_lambda=np.zeros(len(desired_means))
+    lamb=init_lambda
+    weights=init_weights
 
-
-### nleqslv 패키지 써서 다시해보기
-library(nleqslv)
-objective_function<-function(lambda){
-  return(diff(lambda,weights,A,desired_means))
-}
-solution<-nleqslv(lambda,objective_function,jac=NULL,control=list(allowSingular=TRUE,maxit=5000))
-solution
-lambda<-solution$x
-
-
-
-
-
-
-{ # calculate the calibration weights finally
-  weights_calib = weights * exp(-A %*% lambda)
-  weights_calib = weights_calib/sum(weights_calib)*m
-}
-
-
-{ # check for calibration code to work well
-  t(A) %*% weights_calib / m
-}
-
-rst = sapply(1:100, function(iter){
-  index= sample(1:m, nrow(aug_synthetic_data), prob=weights_calib, replace = T)
-  colMeans(A[index,])
-})
-desired_means
-rowMeans(rst)
-rst
-synthetic_data = aug_synthetic_data[sample(1:m, nrow(original_data), prob=weights_calib, replace = T),]
-
-
-aug_synthetic_data
-synthetic_data
-nrow(synthetic_data)
-summary(original_data)
-summary(synthetic_data)
-summary(t(rst))
-
-original_std_deviation <- apply(original_data, 2, sd)
-synthetic_std_deviation <- apply(synthetic_data, 2, sd)
-om_std_deviation <- apply(original_data, 2, sd)
-print(original_std_deviation)
-print(synthetic_std_deviation)
-
-t(rst)
-write.csv(t(rst), file = "C:/Users/wjswp/Desktop/발표자료/simulation/ds_energy/diffusion-ts/synthetic_data_ds__.csv", row.names = FALSE)
+    for i in range(0,len(aug_data.T)):
+        for j in range(iter):
+            eps = diff_each(lamb[i], weights, aug_data[:,i], desired_means[i], n)/deriv_lamb_diff(lamb[i], weights, aug_data[:,i], desired_means[i], m)
+            lamb[i] = lamb[i] - lr*eps
+            weights_calib=weights*np.exp(-aug_data[:,i]*lamb[i])
+            weights = weights_calib/np.sum(weights_calib)*n
+            print('each_iter_error')
+            print(abs(diff_each(lamb[i], weights,aug_data[:,i], desired_means[i], n)))
+        print('tot error')
+        print(diff_tot(lamb, weights, aug_data, desired_means, n))
