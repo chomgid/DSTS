@@ -27,7 +27,6 @@ def deriv_lamb_diff(lambda_, weights, aug_data, desired_means, m):
     return(-(aug_data*aug_data) @ np.exp(-lambda_*aug_data).T /m)
 
 
-
 # method is newton-Rhapson algorithm
 # iter is hyperparameter of how many times you want to update each lambda
 def calibration(ori_data,aug_data, iter=15, lr=0.0001):
@@ -54,3 +53,18 @@ def calibration(ori_data,aug_data, iter=15, lr=0.0001):
             print(abs(diff_each(lamb[i], weights,aug_data[:,i], desired_means[i], n)))
         print('tot error')
         print(diff_tot(lamb, weights, aug_data, desired_means, n))
+
+    # compare each row
+    rst = np.array([aug_data[np.random.choice(np.arange(100), size=len(aug_data), p=weights_calib, replace=True)].mean(axis=0) for _ in range(100)])
+    print("rst:" , rst)
+                
+    # tot_mean
+    row_means_rst = rst.mean(axis=1)
+    print("row_means_rst:", row_means_rst)
+                    
+    # sampling by weights
+    weights_calib = weights / np.sum(weights)
+    synthetic_data_indices = np.random.choice(np.arange(len(aug_data)), size=len(ori_data), p=weights_calib, replace=True)
+    synthetic_data = aug_data[synthetic_data_indices]
+
+    return (synthetic_data)
