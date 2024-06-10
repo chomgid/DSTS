@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.mixture import GaussianMixture
 
 
-def draw_y1(data, n_comp:int, aug):
+def draw_y1(data, n_comp:int, aug) -> np.ndarray:
     size = data.shape[0]
     gmm = GaussianMixture(n_components=n_comp)
     gmm.fit(data)
@@ -12,7 +12,7 @@ def draw_y1(data, n_comp:int, aug):
     return y1
 
 
-def make_r(data):
+def make_r(data) -> np.ndarray:
     r = np.ones_like(data[:,1:])
     col_num = data.shape[1]
     for col_index in range(0, col_num-1) : 
@@ -21,7 +21,7 @@ def make_r(data):
     return r
 
 
-def make_alpha(data):
+def make_alpha(data) -> np.ndarray:
     means = np.mean(data, axis=0)
     variances = np.std(data, axis=0)
 
@@ -30,7 +30,7 @@ def make_alpha(data):
     return alpha
 
 
-def make_r_comb(size:int):
+def make_r_comb(size:int) -> np.ndarray:
     x = np.repeat(np.arange(size), size)
     y = np.tile(np.arange(size), size)
 
@@ -42,7 +42,7 @@ def make_r_comb(size:int):
     return unique_pairs
 
 
-def make_rs_matrix(data, aug):
+def make_rs_matrix(data, aug) -> np.ndarray:
     size = data.shape[0]
     r = make_r(data)
     r_comb = make_r_comb(size)
@@ -56,7 +56,7 @@ def make_rs_matrix(data, aug):
     return rs_df
 
 
-def draw_y1(data, n_comp, aug=5):
+def draw_y1(data, n_comp, aug=5) -> np.ndarray:
     size = data.shape[0]
     gmm = GaussianMixture(n_components=n_comp)
     gmm.fit(data)
@@ -65,12 +65,13 @@ def draw_y1(data, n_comp, aug=5):
     return np.squeeze(y1)
 
 
-def synthesize(data:np.ndarray, n_comp=2, aug=5):
-    # assert data.shape[0] == args.size
-    # assert data.shape[1] == args.length
+def synthesize(data:np.ndarray, n_comp=2, aug=5) -> np.ndarray:
+    """
+
+    """
     size = data.shape[0]
     length = data.shape[1]
-    y1 = draw_y1(data, n_comp, aug)
+    y1 = draw_y1(data[:,:1], n_comp, aug)
     rs = make_rs_matrix(data, aug)
     synth = np.ones((size*aug,length))
     synth[:,0] = y1
