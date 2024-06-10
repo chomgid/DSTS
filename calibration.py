@@ -33,7 +33,20 @@ def deriv_lamb_diff(lambda_, weights, aug_data, desired_means, m):
 
 # optimized by Newton-Raphson algorithm
 # iter is hyperparameter of how many times you want to update each lambda
-def calibration(ori_data, aug_data, iter=15, lr=0.0001):
+def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter=15, lr=0.0001):
+    """
+    Calibrate synthesized data so that cross-sectional data structure is preserved.
+
+    Parameters:
+    ori_data (np.ndarray): Input data array of shape (size, length).
+    aug_data (np.ndarray): Generated data array of shape (size, length)
+    iter (int): 
+    lr (float): 
+
+    Returns:
+    np.ndarray: Calibrated data array of shape (size * aug, length).
+
+    """
     n=len(ori_data)
     m=len(aug_data)
     init_weights=np.ones(len(aug_data)) / m * n
@@ -53,10 +66,10 @@ def calibration(ori_data, aug_data, iter=15, lr=0.0001):
             lamb[i] = lamb[i] - lr*eps
             weights_calib=weights*np.exp(-aug_data[:,i]*lamb[i])
             weights = weights_calib/np.sum(weights_calib)*n
-            print('each_iter_error')
-            print(abs(diff_each(lamb[i], weights,aug_data[:,i], desired_means[i], n)))
-        print('tot error')
-        print(diff_tot(lamb, weights, aug_data, desired_means, n))
+            # print('each_iter_error')
+            # print(abs(diff_each(lamb[i], weights,aug_data[:,i], desired_means[i], n)))
+        # print('tot error: ', "\n")
+        # print(diff_tot(lamb, weights, aug_data, desired_means, n))
 
 
                     
@@ -65,14 +78,14 @@ def calibration(ori_data, aug_data, iter=15, lr=0.0001):
 
     # compare each row
     rst = np.array([aug_data[np.random.choice(len(aug_data), size=len(aug_data), p=weights_calib, replace=True)].mean(axis=0) for _ in range(100)])
-    print("rst:" , rst)
+    # print("rst:" , rst)
                 
     # tot_mean
-    row_means_rst = rst.mean(axis=1)
-    print("row_means_rst:", row_means_rst)
+    # row_means_rst = rst.mean(axis=1)
+    # print("row_means_rst:", row_means_rst)
 
     # sampling by normalizing weights
-    synthetic_data_indices = np.random.choice(np.arange(len(aug_data)), size=len(ori_data), p=weights_calib, replace=True)
-    synthetic_data = aug_data[synthetic_data_indices]
+    indices = np.random.choice(np.arange(len(aug_data)), size=len(ori_data), p=weights_calib, replace=True)
+    calib_data = aug_data[indices]
 
-    return synthetic_data
+    return calib_data

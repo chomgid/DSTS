@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.mixture import GaussianMixture
+from calibration import *
 
 
 def draw_y1(data, n_comp:int, aug) -> np.ndarray:
@@ -65,8 +66,17 @@ def draw_y1(data, n_comp, aug=5) -> np.ndarray:
     return np.squeeze(y1)
 
 
-def synthesize(data:np.ndarray, n_comp=2, aug=5) -> np.ndarray:
+def DS2_gen(data:np.ndarray, aug=5, n_comp=2) -> np.ndarray:
     """
+    Synthesizes a new time series using DS2 algorithms.
+
+    Parameters:
+    data (np.ndarray): Input data array of shape (size, length).
+    n_comp (int): The number of mixture components in GMM. Default is 2.
+    aug (int): How many times the size of the synthesized data should be relative to the original data. Default is 5.
+
+    Returns:
+    np.ndarray: The synthesized data array of shape (size * aug, length).
 
     """
     size = data.shape[0]
@@ -77,4 +87,5 @@ def synthesize(data:np.ndarray, n_comp=2, aug=5) -> np.ndarray:
     synth[:,0] = y1
     synth[:,1:] = (y1*rs.T).T
 
-    return synth
+    calib_data = calibration(data, synth)
+    return calib_data
