@@ -1,2 +1,11 @@
 # Doubly Structured Data Synthesis for Time-series Energy Use Data
-This is the official repository for the paper [Doubly Structured Data Synthesis for Time-series Energy Use Data]
+
+Still under Development!  **Not ready for use**
+
+This repository contains the official Python package implementation of the paper "Doubly Structured Data Synthesis for Time-series Energy Use Data"
+
+## Installation
+
+
+## How to use
+
