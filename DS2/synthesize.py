@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.mixture import GaussianMixture
-from calibration import *
+from DS2.calibration import *
 
 
 def draw_y1(data, n_comp:int, aug) -> np.ndarray:
@@ -66,7 +66,7 @@ def draw_y1(data, n_comp, aug=5) -> np.ndarray:
     return np.squeeze(y1)
 
 
-def DS2_gen(data:np.ndarray, aug=5, n_comp=2) -> np.ndarray:
+def generate(data:np.ndarray, aug=5, n_comp=2) -> np.ndarray:
     """
     Synthesizes a new time series using DS2 algorithms.
 
