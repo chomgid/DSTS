@@ -71,7 +71,6 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter=15, lr=0.0001):
         # print('tot error: ', "\n")
         # print(diff_tot(lamb, weights, aug_data, desired_means, n))
 
-
                     
     # normalizing weights
     weights_calib = weights / np.sum(weights)
