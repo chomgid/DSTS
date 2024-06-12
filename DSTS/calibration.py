@@ -78,11 +78,11 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter=15, lr=0.0001):
 
     # compare each row
     rst = np.array([aug_data[np.random.choice(len(aug_data), size=len(aug_data), p=weights_calib, replace=True)].mean(axis=0) for _ in range(100)])
-    # print("rst:" , rst)
+    print("rst: " , rst)
                 
     # tot_mean
-    # row_means_rst = rst.mean(axis=1)
-    # print("row_means_rst:", row_means_rst)
+    row_means_rst = rst.mean(axis=1)
+    print("row_means_rst: ", row_means_rst)
 
     # sampling by normalizing weights
     indices = np.random.choice(np.arange(len(aug_data)), size=len(ori_data), p=weights_calib, replace=True)

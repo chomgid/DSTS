@@ -1,10 +1,9 @@
 [project]
-name = "DS2"
+name = "DSTS"
 version = "0.0.1"
 authors = [
   { name="Changwook Lee", email="changwook1410@gmail.com" },
 ]
-urls = "https://github.com/chomgid/DS2/tree/main"
 description = "official Python package implementation of the paper Doubly Structured Data Synthesis for Time-series Energy Use Data"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -15,5 +14,4 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pypa/sampleproject"
-Issues = "https://github.com/pypa/sampleproject/issues"
+Homepage = "https://github.com/chomgid/DSTS/tree/main"
