@@ -1,9 +1,9 @@
 __pycache__/
 .DS_store
 *.ipynb
-**/*.ipynb
 EnergyData/
 dist/
 *.egg-info/
 *.csv
-**/*.csv
+Tutorial/
+DAta/

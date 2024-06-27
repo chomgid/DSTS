@@ -44,9 +44,11 @@ def make_r_comb(size:int) -> np.ndarray:
 
 def make_rs_matrix(data, aug) -> np.ndarray:
     size = data.shape[0]
+    length = data.shape[1]
     r = make_r(data)
     r_comb = make_r_comb(size)
-    lamb = np.random.dirichlet(make_alpha(r), r_comb.shape[0])
+    # lamb = np.random.dirichlet(make_alpha(r), r_comb.shape[0])
+    lamb = np.repeat(np.random.beta(0.5,0.5,r_comb.shape[0]).reshape(r_comb.shape[0],1), length-1, axis=1)
     rs_matrix = lamb * r[r_comb[:, 0]] + (1-lamb) * r[r_comb[:, 1]]
 
     # SRS len(r)*aug many samples from rs_matrix

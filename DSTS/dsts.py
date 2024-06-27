@@ -19,7 +19,7 @@ class dsts:
 
         return True
 
-    def generate(self, aug=5, n_comp=2, iter=15, lr=0.0001) -> np.ndarray:
+    def generate(self, iter=3, tot_iter=1, aug=5, n_comp=2) -> np.ndarray:
         """
         Synthesizes a new time series using DS2 algorithms.
 
@@ -43,6 +43,6 @@ class dsts:
         synth[:,0] = y1
         synth[:,1:] = (y1*rs.T).T
 
-        calib_data = calibration(self.data, synth, iter, lr)
+        calib_data = calibration(self.data, synth, iter, tot_iter)
 
-        return calib_data
+        return synth, calib_data
