@@ -12,12 +12,16 @@ def num_Newton(lambda_, weights, aug_data, desired_means, n):
     return ((aug_data.T @ weights_post)/n - desired_means)
 
 
-
 def denom_Newton(lambda_, weights, aug_data, desired_means, m):
     """
     denominator of Newton's method (f'(lambda))
     """
-    return(-(aug_data*aug_data) @ np.exp(-lambda_*aug_data).T /m)
+    A = aug_data.T @ (weights * np.exp(-aug_data * lambda_ ))
+    B = np.sum(weights * np.exp(-aug_data * lambda_ ))
+    dA = -(aug_data**2).T @ (weights * np.exp(-aug_data * lambda_ ))
+    dB = -A
+
+    return (dA*B-A*dB)/B**2
 
 
 # optimized by Newton's method
@@ -49,7 +53,7 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
     for _ in range(tot_iter):
         for i in range(0,len(aug_data.T)):
             for _ in range(iter):
-                eps = num_Newton(lamb[i], weights, aug_data[:,i], desired_means[i], n)/denom_Newton2(lamb[i], weights, aug_data[:,i], desired_means[i], m)
+                eps = num_Newton(lamb[i], weights, aug_data[:,i], desired_means[i], n)/denom_Newton(lamb[i], weights, aug_data[:,i], desired_means[i], m)
                 lamb[i] = lamb[i] - eps
             weights_calib=weights*np.exp(-aug_data[:,i]*lamb[i])
             weights = weights_calib/np.sum(weights_calib)*n
@@ -65,15 +69,3 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
 
     return calib_data
 
-
-
-def denom_Newton2(lambda_, weights, aug_data, desired_means, m):
-    """
-    denominator of Newton's method (f'(lambda))
-    """
-    A = aug_data.T @ (weights * np.exp(-aug_data * lambda_ ))
-    B = np.sum(weights * np.exp(-aug_data * lambda_ ))
-    dA = -(aug_data**2).T @ (weights * np.exp(-aug_data * lambda_ ))
-    dB = -A
-
-    return (dA*B-A*dB)/B**2
