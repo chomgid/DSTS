@@ -19,15 +19,20 @@ class dsts:
 
         return True
 
-    def generate(self, iter=3, tot_iter=1, aug=5, n_comp=2) -> np.ndarray:
+    def generate(self, iter=3, tot_iter=4, aug=5, n_comp=2, sort = True, condGMM = False, LR = False) -> np.ndarray:
         """
         Synthesizes a new time series using DS2 algorithms.
 
         Parameters:
         data (np.ndarray): Input data array of shape (size, length).
-        n_comp (int): The number of mixture components in GMM. Default is 2.
-        aug (int): How many times the size of the synthesized data should be relative to the original data. Default is 5.
-
+        iter (int, optional): The number of calibration iterations for each timestamp. Defaults to 3. 
+        tot_iter (int, optional): The number of calibration loops for whole time series. Default to 4.
+        n_comp (int, optional): The number of mixture components in GMM. Default is 2.
+        aug (int): The multiplier for the size of the synthesized data relative to the original data. Defaults to 5.
+        sort (bool, optional): Set to True to use the sorting method, and False to bypass it. Defaults to True.
+        condGMM (bool, optional): Use conditional Gaussian mixture model to generate y1. Note: LR and condGMM cannot both be True simultaneously. Defaults to False.
+        LR (bool, optional): Use linear regression to generate y1. Note: LR and condGMM cannot both be True simultaneously. Defaults to False.
+        
         Returns:
         np.ndarray: The synthesized data array of shape (size * aug, length).
 
@@ -37,11 +42,20 @@ class dsts:
 
         size = self.data.shape[0]
         length = self.data.shape[1]
-        y1 = draw_y1(self.data[:,:1], n_comp, aug)
-        rs = make_rs_matrix(self.data, aug)
+        rstar = make_rstar(self.data, aug, sort)    
+
+        assert not (condGMM and LR), "Both condGMM and LR cannot be True at the same time."
+
+        if condGMM:
+            y1 = draw_y1_cond(self.data, rstar, n_comp, sort)
+        elif LR:
+            y1 = lr_draw_y1(self.data, rstar, sort)
+        else:
+            y1 = draw_y1(self.data[:,0], n_comp, aug, sort)
+
         synth = np.ones((size*aug,length))
         synth[:,0] = y1
-        synth[:,1:] = (y1*rs.T).T
+        synth[:,1:] = (y1*rstar.T).T
 
         calib_data = calibration(self.data, synth, iter, tot_iter)
 

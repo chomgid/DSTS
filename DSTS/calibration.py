@@ -64,7 +64,7 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
     weights_calib = weights / np.sum(weights)
 
     # probability-proportional-to-size without replacement sampling using normalized weights
-    indices = np.random.choice(np.arange(len(aug_data)), size=len(ori_data), p=weights_calib, replace=True)
+    indices = np.random.choice(np.arange(len(aug_data)), size=len(aug_data), p=weights_calib, replace=True)
     calib_data = aug_data[indices]
 
     return calib_data
