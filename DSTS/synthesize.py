@@ -68,11 +68,11 @@ def draw_y1(data, n_comp, aug, sort) -> np.ndarray:
     gmm = GaussianMixture(n_components=n_comp)
     gmm.fit(data[:,:1])
     y1, _ = gmm.sample(size*aug)
-    y1 = y1.squeeze()
     if sort:
-        y1 = y1.sort()
+        y1 = y1.squeeze()
+        y1 = np.sort(y1)
 
-    return y1
+    return y1.squeeze()
 
 
 # Linear regression method
@@ -83,9 +83,10 @@ def lr_draw_y1(data, rstar, sort) -> np.ndarray:
     lr = LinearRegression().fit(r[:,:2], data[:,0])
     y_hat = lr.predict(r[:,:2])
     sig_hat = np.sqrt((y-y_hat)@(y-y_hat)/(size-2))
-    y1 = np.random.normal(loc = lr.predict(rstar[:,:2]), scale = sig_hat, size = len(rstar)).squeeze()
+    y1 = np.random.normal(loc = lr.predict(rstar[:,:2]), scale = sig_hat, size = len(rstar))
     if sort:
-        y1 = y1.sort()
+        y1 = y1.squeeze()
+        y1 = np.sort(y1)
 
     return np.squeeze(y1)
 
@@ -156,6 +157,7 @@ def draw_y1_cond(data, rstar, n_comp, sort) -> np.ndarray:
     std = s2
     y1_hat = np.random.normal(mean, std, size=len(rstar))
     if sort:
-        y1_hat = y1_hat.sort()
+        y1_hat = y1_hat.squeeze()
+        y1_hat = np.sort(y1_hat)
 
-    return y1_hat
+    return y1_hat.squeeze()

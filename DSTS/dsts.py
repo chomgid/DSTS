@@ -59,4 +59,4 @@ class dsts:
 
         calib_data = calibration(self.data, synth, iter, tot_iter)
 
-        return synth, calib_data
+        return calib_data
