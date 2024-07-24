@@ -22,7 +22,7 @@ import numpy as np
 
 ### Loading Your Dataset
 ```bash
-data = pd.read_csv("your_time_series_datset.csv")
+data = ...
 ```
 
 ### 1. Use GMM(n=2) and sorting method
