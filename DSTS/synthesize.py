@@ -17,7 +17,6 @@ def make_r(data) -> np.ndarray:
 def make_alpha(data) -> np.ndarray:
     means = np.mean(data, axis=0)
     variances = np.std(data, axis=0)
-
     alpha = means**2 / variances
 
     return alpha
@@ -31,8 +30,8 @@ def make_rs_index(size, aug):
         new_array = np.delete(index_array, i)
         new_array = np.random.choice(new_array, aug, replace=False)
         arrays_list.append(new_array)
-
     rs_index = np.stack(arrays_list)
+
     return rs_index
 
 
@@ -67,7 +66,7 @@ def make_rstar(data, aug, sort) -> np.ndarray:
 def draw_y1(data, n_comp, aug, sort) -> np.ndarray:
     size = data.shape[0]
     gmm = GaussianMixture(n_components=n_comp)
-    gmm.fit(data)
+    gmm.fit(data[:,:1])
     y1, _ = gmm.sample(size*aug)
     y1 = y1.squeeze()
     if sort:

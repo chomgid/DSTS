@@ -51,7 +51,7 @@ class dsts:
         elif LR:
             y1 = lr_draw_y1(self.data, rstar, sort)
         else:
-            y1 = draw_y1(self.data[:,0], n_comp, aug, sort)
+            y1 = draw_y1(self.data, n_comp, aug, sort)
 
         synth = np.ones((size*aug,length))
         synth[:,0] = y1
