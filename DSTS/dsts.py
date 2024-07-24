@@ -11,13 +11,21 @@ class dsts:
         except:
             raise ValueError("Data cannot be converted to numpy ndarray")
         
-        self.databool = self.test(data)
-        if not self.databool: 
-            raise ValueError("Invalid data provided for DSTS model")
+        self.test(data)
+
 
     def test(self, data):
+        # Check if data contains any negative or zero values
+        if np.any(data <= 0):
+            raise ValueError("Your data must not contain any negative or zero values.")
+        
+        # Check if data contains any NaN values
+        if np.isnan(data).any():
+            raise ValueError("Your data must not contain any NaN values.")
+        
+        # If no issues, pass the check
+        pass         
 
-        return True
 
     def generate(self, iter=3, tot_iter=4, aug=5, n_comp=2, sort = True, condGMM = False, LR = False) -> np.ndarray:
         """
