@@ -25,21 +25,21 @@ import numpy as np
 data = ...
 ```
 
-### 1. Use GMM(n=2) and sorting method
+### 1. Use GMM(n_comp=2) and sorting method
 ```bash
 model = dsts(data)
-synth = model.generate(aug=5, sort=True)
+synth = model.generate(aug=5, n_comp=2, sort=True)
 ```
 Note that aug parameter is the multiplier for the size of the synthesized data relative to the original data.
 
-### 2. Use conditional GMM(n=2)
+### 2. Use conditional GMM(n_comp=2)
 ```bash
 model = dsts(data)
-synth = model.generate(aug=5, sort=False, condGMM=True)
+synth = model.generate(aug=5, n_comp=2, sort=False, condGMM=True)
 ```
 
 ### 3. Use linear regression
 ```bash
 model = dsts(data)
-synth = model.generate(aug=5, sort=False, LR=True)
+synth = model.generate(aug=5, n_comp=2, sort=False, LR=True)
 ```
