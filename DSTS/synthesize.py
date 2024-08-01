@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.mixture import GaussianMixture
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression 
+from sklearn.tree import DecisionTreeRegressor
 from scipy.stats import norm
 
 
@@ -22,13 +23,13 @@ def make_alpha(data) -> np.ndarray:
     return alpha
 
 
-def make_rs_index(size, aug):
+def make_rs_index(size, k):
     index_array = np.arange(size)
     arrays_list = []
 
     for i in range(size):
         new_array = np.delete(index_array, i)
-        new_array = np.random.choice(new_array, aug, replace=False)
+        new_array = np.random.choice(new_array, k, replace=False)
         arrays_list.append(new_array)
     rs_index = np.stack(arrays_list)
 
@@ -36,17 +37,17 @@ def make_rs_index(size, aug):
 
 
 
-def make_rstar(data, aug, sort) -> np.ndarray:
+def make_rstar(data, k, sort) -> np.ndarray:
     """
     make rstar matrix
     """
     size = data.shape[0]
     r = make_r(data)
-    rs_index = make_rs_index(size, aug)
+    rs_index = make_rs_index(size, k)
     yi = data[:,:1]
     rstar = []
     ystar = []
-    for j in range(aug):
+    for j in range(k):
         rs = r[rs_index[:,j]]
         ys = yi[rs_index[:,j]]
         lamb = np.random.beta(a=0.5, b=0.5, size=(size,1))
@@ -62,17 +63,29 @@ def make_rstar(data, aug, sort) -> np.ndarray:
     return rstar_matrix
 
 
-
-def draw_y1(data, n_comp, aug, sort) -> np.ndarray:
+def draw_y1(data, n_comp, k, sort) -> np.ndarray:
     size = data.shape[0]
     gmm = GaussianMixture(n_components=n_comp)
     gmm.fit(data[:,:1])
-    y1, _ = gmm.sample(size*aug)
+    y1, _ = gmm.sample(size*k)
     if sort:
         y1 = y1.squeeze()
         y1 = np.sort(y1)
 
     return y1.squeeze()
+
+
+def dt_draw_y1(data, rstar, sort) -> np.ndarray:
+    r = make_r(data)
+    size = len(data)
+    y = data[:,0]
+    dt = DecisionTreeRegressor().fit(r[:,:2], y)
+    y1 = dt.predict(rstar[:,:2])
+    if sort:
+        y1 = y1.squeeze()
+        y1 = np.sort(y1)
+
+    return np.squeeze(y1)
 
 
 # Linear regression method
@@ -122,7 +135,7 @@ def fit_GMM(y1, r, n_comp):
         # z
         for i in range(size):
             for k in range(n_comp):
-                z[i,k] = pi[k]*norm.pdf(y1[i], b0[k]+b1[k]*r[i,0], np.sqrt(s2))/np.sum(np.fromiter((pi[j]*norm.pdf(y1[i], b0[j]+b1[j]*r[i,0], np.sqrt(s2)) for j in range(n_comp)), dtype=float))
+                z[i,k] = pi[k]*norm.pdf(y1[i], b0[k]+b1[k]*r[i,0], np.sqrt(s2)).item()/np.sum(np.fromiter((pi[j]*norm.pdf(y1[i], b0[j]+b1[j]*r[i,0], np.sqrt(s2)).item() for j in range(n_comp)), dtype=float))
 
         # M-step
         # pi
@@ -148,7 +161,7 @@ def fit_GMM(y1, r, n_comp):
     return b0, b1, s2, pi
 
 
-def draw_y1_cond(data, rstar, n_comp, sort) -> np.ndarray:
+def condGMM_draw_y1(data, rstar, n_comp, sort) -> np.ndarray:
     y1 = data[:,0]
     r = make_r(data)
     b0, b1, s2, pi = fit_GMM(y1, r, n_comp)

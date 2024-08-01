@@ -25,7 +25,7 @@ def denom_Newton(lambda_, weights, aug_data, desired_means, m):
 
 
 # optimized by Newton's method
-def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
+def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter, aug):
     """
     Calibrate synthesized data so that cross-sectional data structure is preserved.
 
@@ -34,6 +34,7 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
     aug_data (np.ndarray): Generated data array of shape (size, length)
     iter (int): how many times Newton-Rhapson update is performed for each timestamp
     tot_iter (float): how many times the whole time series is updated
+    aug (int): The multiplier for the size of the synthesized data relative to the original data.
 
     Returns:
     np.ndarray: Calibrated data array of shape (size * aug, length).
@@ -64,7 +65,7 @@ def calibration(ori_data:np.ndarray, aug_data:np.ndarray, iter, tot_iter):
     weights_calib = weights / np.sum(weights)
 
     # probability-proportional-to-size without replacement sampling using normalized weights
-    indices = np.random.choice(np.arange(len(aug_data)), size=len(aug_data), p=weights_calib, replace=True)
+    indices = np.random.choice(np.arange(len(aug_data)), size=aug*n, p=weights_calib, replace=False)
     calib_data = aug_data[indices]
 
     return calib_data
