@@ -4,63 +4,7 @@ from sklearn.mixture import GaussianMixture
 from sklearn.linear_model import LinearRegression 
 from sklearn.tree import DecisionTreeRegressor
 from scipy.stats import norm
-
-
-def make_r(data) -> np.ndarray:
-    r = np.ones_like(data[:,1:])
-    col_num = data.shape[1]
-    for col_index in range(0, col_num-1) : 
-        r[:,col_index] = data[:,col_index+1]/data[:,0]
-
-    return r
-
-
-def make_alpha(data) -> np.ndarray:
-    means = np.mean(data, axis=0)
-    variances = np.std(data, axis=0)
-    alpha = means**2 / variances
-
-    return alpha
-
-
-def make_rs_index(size, k):
-    index_array = np.arange(size)
-    arrays_list = []
-
-    for i in range(size):
-        new_array = np.delete(index_array, i)
-        new_array = np.random.choice(new_array, k, replace=False)
-        arrays_list.append(new_array)
-    rs_index = np.stack(arrays_list)
-
-    return rs_index
-
-
-
-def make_rstar(data, k, sort) -> np.ndarray:
-    """
-    make rstar matrix
-    """
-    size = data.shape[0]
-    r = make_r(data)
-    rs_index = make_rs_index(size, k)
-    yi = data[:,:1]
-    rstar = []
-    ystar = []
-    for j in range(k):
-        rs = r[rs_index[:,j]]
-        ys = yi[rs_index[:,j]]
-        lamb = np.random.beta(a=0.5, b=0.5, size=(size,1))
-        rstar.append(lamb*r + (1-lamb)*rs)
-        ystar.append(lamb*yi + (1-lamb)*ys)
-
-    rstar_matrix = np.vstack(rstar)
-    ystar_matrix = np.vstack(ystar).squeeze()
-    if sort:
-        index = np.argsort(ystar_matrix)
-        rstar_matrix = rstar_matrix[index]
-
-    return rstar_matrix
+from DSTS.mixup import make_r
 
 
 def draw_y1(data, n_comp, k, sort) -> np.ndarray:

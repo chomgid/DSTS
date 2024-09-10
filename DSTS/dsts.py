@@ -1,8 +1,7 @@
 import numpy as np
-import pandas as pd
-from sklearn.mixture import GaussianMixture
 from DSTS.calibration import *
-from DSTS.synthesize import *
+from DSTS.mixup import *
+from DSTS.y1_generation import *
 
 class dsts:
     def __init__(self, method):
@@ -18,9 +17,9 @@ class dsts:
     def fit(self, data):
         try:
             self.data = np.array(data)
-        except:
+        except :
             raise ValueError("Data cannot be converted to numpy ndarray")
-        self.__test(data)
+        self.data = self.__test(self.data)
 
 
     def generate(self, ite=3, tot_iter=4, aug=5, n_comp=2) -> np.ndarray:
@@ -43,8 +42,9 @@ class dsts:
         """
         size = self.data.shape[0]
         length = self.data.shape[1]
-        k = aug+5
+        k = aug+2
 
+        # handle sorting method
         if self.method=='sorting':
             sort = True
         else:
@@ -52,6 +52,7 @@ class dsts:
 
         rstar = make_rstar(self.data, k, sort)    
         
+        # method to use for generating y1
         if self.method=='sorting':
             y1 = dt_draw_y1(self.data, rstar, sort=True)
 
@@ -70,22 +71,18 @@ class dsts:
         calib_data = calibration(self.data, synth, ite, tot_iter, aug)
 
         return calib_data
-    
-
-    def impute_zero(self, num, data):
-        data = np.array(data)
-        data[data<=0]=num
-
-        return data
-        
+       
 
     def __test(self, data):
-        # Check if data contains any negative or zero values
-        if np.any(data <= 0):
-            raise ValueError("Your data must not contain any negative or zero values.")
-        
         # Check if data contains any NaN values
         if np.isnan(data).any():
             raise ValueError("Your data must not contain any NaN values.")
         
-        pass
+        # Check if first timestamp contains any non-positive values
+        self.epsilon = 0
+        if np.any(data[:,0]<=0):
+            self.epsilon=np.abs(data[:,0].min())+1
+            data[:,0] = data[:,0]+self.epsilon
+
+        return data
+        
