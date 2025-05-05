@@ -11,3 +11,7 @@ dist/
 
 # Metadata and packaging
 MANIFEST.in
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+*.py[cod]
