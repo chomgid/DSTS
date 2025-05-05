@@ -1,9 +1,6 @@
-__pycache__/
-.DS_store
-*.ipynb
-EnergyData/
-dist/
+# .gitignore
 *.egg-info/
-*.csv
-Tutorial/
-DAta/
+dist/
+build/
+__pycache__/
+*.pyc

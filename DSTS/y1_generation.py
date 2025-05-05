@@ -7,33 +7,132 @@ from scipy.stats import norm
 from DSTS.mixup import make_r
 
 
-def draw_y1(data, n_comp, k, sort) -> np.ndarray:
-    size = data.shape[0]
-    gmm = GaussianMixture(n_components=n_comp)
-    gmm.fit(data[:,:1])
-    y1, _ = gmm.sample(size*k)
+def gmm_draw_y1(data, rstar, n_comp, sf_mixup, sort) :
+    sf_mixup = sf_mixup.squeeze() # shape (n*k, c)
+    n, l, c = rstar.shape
+    sf = data[:, 0, :]  # shape (n, c)
+
+    sf_list = []
+    for i in range(c):
+        gmm = GaussianMixture(n_components=n_comp)
+        gmm.fit(sf[:,i])
+        sf_star, _ = gmm.sample(rstar.shape[0])
+        sf_list.append(sf_star)
+
+    sf_matrix = np.column_stack(sf_list) # shape (n*k, c)
     if sort:
-        y1 = y1.squeeze()
-        y1 = np.sort(y1)
+        sf_matrix = np.sort(sf_matrix, axis=0)
+        if c>1:
+            for i in range(c):
+                indices = np.argsort(sf_mixup[:,i])
+                sf_matrix[:,i] = sf_matrix[indices,i]
+        else:
+            indices = np.argsort(sf_mixup)
+            sf_matrix[:,i] = sf_matrix[indices,0]
+    return sf_matrix
 
-    return y1.squeeze()
 
+def gmm_draw_ymax(data, rstar, n_comp, sf_mixup, sort):
+    sf_mixup = sf_mixup.squeeze() # shape (n*k, c)
+    n, l, c = rstar.shape 
+    sf = np.max(np.abs(data), axis=1)  # shape (n, c)
 
-def dt_draw_y1(data, rstar, sort) -> np.ndarray:
-    r = make_r(data)
-    size = len(data)
-    y = data[:,0]
-    dt = DecisionTreeRegressor().fit(r[:,:2], y)
-    y1 = dt.predict(rstar[:,:2])
+    sf_list = []
+    for i in range(c):
+        gmm = GaussianMixture(n_components=n_comp)
+        gmm.fit(sf[:,i])
+        sf_star, _ = gmm.sample(n)
+        sf_list.append(sf_star)
+
+    sf_matrix = np.column_stack(sf_list) # shape (n*k, c)
     if sort:
-        y1 = y1.squeeze()
-        y1 = np.sort(y1)
+        sf_matrix = np.sort(sf_matrix, axis=0)
+        if c>1:
+            for i in range(c):
+                indices = np.argsort(sf_mixup[:,i])
+                sf_matrix[:,i] = sf_matrix[indices,i]
+        else:
+            indices = np.argsort(sf_mixup)
+            sf_matrix[:,i] = sf_matrix[indices,0]
+    return sf_matrix
 
-    return np.squeeze(y1)
 
+def dt_draw_y1(data, rstar, sf_mixup, sort):
+    sf_mixup = sf_mixup.squeeze() # shape (n*k, c)
+    n, l, c = rstar.shape  # shape (n*k, l, c)
+    r = make_r(data, 'y1') # shape (n, l, c)
+    sf = data[:, 0, :]  # shape (n, c)
+    
+    sf_list = []
+    for i in range(c):
+        X_train = r[:, 1:3, i]  # shape (n, 2)
+        y_train = sf[:, i]  # shape (n,)
+        dt = DecisionTreeRegressor().fit(X_train, y_train)
+    
+        X_test = rstar[:, 1:3, i]  # shape (n*k, 2)
+        y_test = dt.predict(X_test)  # shape (n*k,)
+        sf_list.append(y_test)
+    
+    sf_matrix = np.column_stack(sf_list) # shape (n*k, c)
+    
+    if sort:
+        sf_matrix = np.sort(sf_matrix, axis=0)
+        if c>1:
+            for i in range(c):
+                indices = np.argsort(sf_mixup[:,i])
+                sf_matrix[:,i] = sf_matrix[indices,i]
+        else:
+            indices = np.argsort(sf_mixup)
+            sf_matrix[:,i] = sf_matrix[indices,0]
+    return sf_matrix
+
+def dt_draw_ymax(data, rstar, sf_mixup, sort):  
+    sf_mixup = sf_mixup.squeeze() # shape (n*k, c)
+    n, l, c = rstar.shape # shape (n*k, l, c)
+    r = make_r(data, 'ymax')  # shape (n, l, c)
+    sf = np.max(np.abs(data), axis=1)  # shape (n, c)
+    
+    sf_list = []
+    for i in range(c):
+        X_train = r[:, 1:3, i]  # shape (n, 2)
+        y_train = sf[:, i]  # shape (n,)
+        dt = DecisionTreeRegressor().fit(X_train, y_train)
+    
+        X_test = rstar[:, 1:3, i]  # shape (n*k, 2)
+        y_test = dt.predict(X_test)  # shape (n*k,)
+        sf_list.append(y_test)
+    
+    sf_matrix = np.column_stack(sf_list) # shape (n*k, c)
+    
+    if sort:
+        sf_matrix = np.sort(sf_matrix, axis=0)
+        if c>1:
+            for i in range(c):
+                indices = np.argsort(sf_mixup[:,i])
+                sf_matrix[:,i] = sf_matrix[indices,i]
+        else:
+            indices = np.argsort(sf_mixup)
+            sf_matrix[:,i] = sf_matrix[indices,0]
+    return sf_matrix
+
+
+# def mixup_draw_ymax(data, rstar, rs_index, k):  
+#     n, l, c = rstar.shape # shape (n*k, l, c)
+#     r = make_r(data, 'ymax')  # shape (n, l, c)
+#     sf = np.max(np.abs(data), axis=1)  # shape (n, c)
+    
+#     sf_list = []
+#     for i in range(k):
+
+#         np.random.choice(del_arr, k, replace=True)
+
+    
+#     sf_matrix = np.column_stack(sf_list) # shape (n*k, c)
+    
+#     return sf_matrix
 
 # Linear regression method
-def lr_draw_y1(data, rstar, sort) -> np.ndarray:
+def lr_draw_y1(data, rstar, sort) :
     r = make_r(data)
     size = len(data)
     y = data[:,0]
@@ -105,7 +204,7 @@ def fit_GMM(y1, r, n_comp):
     return b0, b1, s2, pi
 
 
-def condGMM_draw_y1(data, rstar, n_comp, sort) -> np.ndarray:
+def condGMM_draw_y1(data, rstar, n_comp, sort) :
     y1 = data[:,0]
     r = make_r(data)
     b0, b1, s2, pi = fit_GMM(y1, r, n_comp)

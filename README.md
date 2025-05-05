@@ -1,45 +1,51 @@
-# Doubly Structured Data Synthesis for Time-series Energy Use Data
+# Doubly Structured Time-series Synthesis (DSTS)
 
-This repository contains the official Python package implementation of the "Doubly Structured Data Synthesis for Time-series Energy Use Data" 
+This repository contains the official Python package implementation of **Doubly Structured Time-series Synthesis (DSTS)**.
 
 ## Installation
-To install the package, you can use `pip`. Run the following command in your terminal:
+
+You can install the package via `pip`. Run the following command in your terminal:
 
 ```bash
 pip install DSTS
 ```
 
-## How to use
-Here is a simple example to get you started with the DSTS package.
+## Usage
 
-### Importing the Package
+Below is a simple example to help you get started with the `DSTS` package.
 
-```bash
+### Import the package
+
+```python
 from DSTS import dsts
-import pandas as pd
-import numpy as np
 ```
 
-### Loading Your Dataset
-```bash
-data = ...
+### Load your dataset
+
+```python
+data = ...  # Your dataset here
 ```
 
-### 1. Use GMM(n_comp=2) and sorting method
-```bash
-model = dsts(data)
-synth = model.generate(aug=5, n_comp=2, sort=True)
-```
-Note that aug parameter is the multiplier for the size of the synthesized data relative to the original data.
+### Construct a DSTS model
 
-### 2. Use conditional GMM(n_comp=2)
-```bash
-model = dsts(data)
-synth = model.generate(aug=5, n_comp=2, sort=False, condGMM=True)
+```python
+mixup_model = dsts(sort=True, centering='double')
 ```
 
-### 3. Use linear regression
-```bash
-model = dsts(data)
-synth = model.generate(aug=5, n_comp=2, sort=False, LR=True)
+### Fit the model to your data
+
+```python
+mixup_model.fit(train_data)
 ```
+
+### Generate synthetic data
+
+```python
+generated_data = mixup_model.generate(aug=1)
+```
+
+---
+
+## License
+
+This project is licensed under the terms of the [MIT License](LICENSE).

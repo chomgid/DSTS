@@ -1,28 +1,39 @@
 import numpy as np
-from DSTS.calibration import *
+from DSTS.calibration2 import *
 from DSTS.mixup import *
 from DSTS.y1_generation import *
+from DSTS.utils import NNsorting
 
 class dsts:
-    def __init__(self, method):
+    def __init__(self, sort, centering, scale_method, test_method, method='DecisionTree'):
         """
         Initialize the dsts class with the specified method.
         
         Parameters:
-        method (str): The method to use for data synthesis. Possible values are 'sorting', 'condGMM', 'LR'.
+        method (str): The method to use for data synthesis. Possible values are 'DecisionTree', 'condGMM', 'LR'.
+        feature_match (bool): Whether to match feature order using NN.
         """
+        self.sort = sort
         self.method = method
+        self.centering = centering
+        self.scale_method = scale_method
+        self.test_method = test_method
 
 
-    def fit(self, data):
+    def fit(self, data):            
         try:
             self.data = np.array(data)
         except :
             raise ValueError("Data cannot be converted to numpy ndarray")
+        
+        self.dim = data.ndim
+        if self.dim != 3:
+            raise ValueError("Data dimension needs to be 3.")
+    
         self.data = self.__test(self.data)
 
 
-    def generate(self, ite=3, tot_iter=4, aug=5, n_comp=2) -> np.ndarray:
+    def generate(self, tot_iter=5, aug=5, n_comp=2) -> np.ndarray:
         """
         Synthesizes a new time series using DS2 algorithms.
 
@@ -40,49 +51,73 @@ class dsts:
         np.ndarray: The synthesized data array of shape (size * aug, length).
 
         """
-        size = self.data.shape[0]
-        length = self.data.shape[1]
-        k = aug+2
+        size, length, var = self.data.shape
+        if aug>1:
+            k = 5
+        else:
+            k=5
 
         # handle sorting method
-        if self.method=='sorting':
-            sort = True
-        else:
-            sort = False
-
-        rstar = make_rstar(self.data, k, sort)    
+        print("Start mixup")
+        rmixup, sf_mixup = r_mixup(self.data, k, self.centering, self.scale_method, self.test_method)    
         
-        # method to use for generating y1
-        if self.method=='sorting':
-            y1 = dt_draw_y1(self.data, rstar, sort=True)
+        # Generate y1 for scale method y1 and ymax
+        if self.scale_method == 'noscale':
+            pass
+        else:
+            if self.method=='DecisionTree':
+                if self.scale_method == 'y1':
+                    sf_star = dt_draw_y1(self.data, rmixup, sf_mixup, self.sort)
+                # elif self.scale_method == 'ymax':
+                #     sf_star = dt_draw_ymax(self.data, rmixup, k)
 
-        elif self.method=='condGMM':
-            sort = False
-            y1 = condGMM_draw_y1(self.data, rstar, n_comp, sort)
+            elif self.method=='GMM':
+                if self.scale_method == 'y1':
+                    sf_star = gmm_draw_y1(self.data, rmixup, sf_mixup, self.sort)
+                # elif self.scale_method == 'ymax':
+                #     sf_star = gmm_draw_ymax(self.data, rmixup, sf_mixup, self.sort)
+                                
+            elif self.method=='condGMM':
+                sf_star = condGMM_draw_y1(self.data, rmixup, n_comp, self.sort)
 
-        elif self.method=='LR':
-            sort=False
-            y1 = lr_draw_y1(self.data, rstar, sort)
+            elif self.method=='LR':
+                sf_star = lr_draw_y1(self.data, rmixup, self.sort)
 
-        synth = np.ones((size*k,length))
-        synth[:,0] = y1
-        synth[:,1:] = (y1*rstar.T).T
 
-        calib_data = calibration(self.data, synth, ite, tot_iter, aug)
+        # Combine scale factors and r mixup to generate augmented synthetic samples
+        if self.scale_method == 'y1':
+            synth = sf_star[:,np.newaxis,:]*rmixup
+            synth-=self.epsilon 
 
-        return calib_data
+        elif self.scale_method == 'ymax':
+            synth = sf_mixup*rmixup
+            synth-=self.epsilon
+
+        elif self.scale_method == 'noscale':
+            synth = rmixup
+            synth-=self.epsilon
+
+        self.data = self.data-self.epsilon
+
+
+        print("Start Calibration")
+        calib_data = calibration(self.data, synth, tot_iter, aug)
+        final_data = calib_data
+
+        return final_data
        
 
     def __test(self, data):
         # Check if data contains any NaN values
         if np.isnan(data).any():
-            raise ValueError("Your data must not contain any NaN values.")
-        
-        # Check if first timestamp contains any non-positive values
+            raise ValueError("Your data must not contain any NaN values.", flush=True)
+
         self.epsilon = 0
-        if np.any(data[:,0]<=0):
-            self.epsilon=np.abs(data[:,0].min())+1
-            data[:,0] = data[:,0]+self.epsilon
+        if np.any(data<=0):
+            self.epsilon=np.abs(data.min())+1
+            data = data+self.epsilon
+            print(f"WARNING! Your data contains non-positive values. Epsilon {self.epsilon} added.", flush=True)
+            
 
         return data
         
