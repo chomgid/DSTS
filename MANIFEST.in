@@ -1,5 +1,0 @@
-global-exclude *.ipynb
-global-exclude .gitignore
-global-exclude *.log
-global-exclude .DS_Store
-
