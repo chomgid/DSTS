@@ -4,6 +4,7 @@ dist/
 build/
 __pycache__/
 *.pyc
+MANIFEST.in
 
 # macOS system files
 .DS_Store
