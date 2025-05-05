@@ -1,10 +1,13 @@
-# .gitignore
-*.egg-info/
-dist/
-build/
-__pycache__/
-*.pyc
-MANIFEST.in
-
 # macOS system files
 .DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter notebooks
+*.ipynb
+
+# Metadata and packaging
+MANIFEST.in
