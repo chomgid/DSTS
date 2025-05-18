@@ -5,7 +5,7 @@ from DSTS.y1_generation import *
 from DSTS.utils import NNsorting
 
 class dsts:
-    def __init__(self, sort, centering, scale_method, test_method, method='DecisionTree'):
+    def __init__(self, sort, centering, scale_method='noscale', test_method='snn', method='DecisionTree'):
         """
         Initialize the dsts class with the specified method.
         
