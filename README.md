@@ -17,7 +17,7 @@ Below is a simple example to help you get started with the `DSTS` package.
 ### Import the package
 
 ```python
-from DSTS.dsts import dsts
+from DSTS import dsts
 ```
 
 ### Load your dataset
